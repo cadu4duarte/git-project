@@ -1,24 +1,33 @@
 import React, { useState, useCallback } from 'react';
-import { FaGithub, FaPlus } from "react-icons/fa"
-import {Container, Form, SubmitButton} from "./styles";
+import { FaGithub, FaPlus, FaSpinner, FaBars } from "react-icons/fa"
+import {Container, Form, SubmitButton, List} from "./styles";
 import api from "../../service/api";
 
 export function Main() {
   const [newRepo, setNewRepo] = useState("");
   const [repositorios, setRepositorios] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = useCallback((e) => {
     e.preventDefault();
 
     async function submit() {
-      const response = await api.get(`repos/${newRepo}`);
+      setLoading(true);
+      try {
+        const response = await api.get(`repos/${newRepo}`);
 
-      const data = {
-        name: response.data.full_name,
-      }
+        const data = {
+          name: response.data.full_name,
+        }
 
-      setRepositorios([...repositorios, data]);
-      setNewRepo(""); 
+
+        setRepositorios([...repositorios, data]);
+        setNewRepo(""); 
+        } catch(error) {
+          console.log(error);
+        } finally {
+          setLoading(false);
+        }
       }
 
       submit();
@@ -43,10 +52,26 @@ export function Main() {
         onChange={handleinputChange}
         />
 
-        <SubmitButton> 
-          <FaPlus color="#fff" size={14}/>
+        <SubmitButton loading={loading ? 1 : 0}>
+          {loading ? (
+            <FaSpinner color="#fff" size={14}/>
+          ) : (
+            <FaPlus color="#fff" size={14}/>
+          )}
         </SubmitButton>
       </Form>
+
+      <List>
+        {repositorios.map(repo => (
+          <li key={repo.name}>
+            <span>{repo.name}</span>
+            <a href=''>
+              <FaBars size={20}/>
+            </a>
+          </li>
+        ))}
+      </List>
+
     </Container>
   )
 }
